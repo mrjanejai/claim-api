@@ -69,6 +69,36 @@ const router = (fastify, { }, next) => {
       reply.code(500).send({ message: 'Internal Server Error' });
     }
   });  
+
+  fastify.get('/ipdcompare', async (request, reply) => {
+    try {
+      const { startDate, endDate,page,size } = request.query;
+      let cDb;
+      if (!startDate || !endDate) {
+
+         cDb = await db.select('*').from('cl_ipd').orderBy('dchdate','asc').limit(size).offset(page*size-size);
+      }else{
+
+         cDb = await db.select('*').from('cl_ipd').whereBetween('dchdate', [startDate, endDate]).orderBy('dchdate','asc').limit(size).offset(page*size-size);;
+      }
+
+    const totalCount = await db('cl_ipd').count('an as total').first();
+    const totalElements = totalCount.total;
+
+    const totalPages = Math.ceil(totalElements / size);
+    console.log(cDb.value);
+
+    reply.code(200).send({
+      dataList: cDb.map(entry => ({ an: entry.an,hn: entry.hn, dchdate: entry.dchdate,pttype: entry.pttype,prediag: entry.prediag,regdate: entry.regdate,regtime: entry.regtime })), // แปลงข้อมูลในรูปแบบที่ต้องการ
+      totalPages,
+      totalElements,
+      last: page >= totalPages - 1,
+    });
+    } catch (error) {
+      console.error(error);
+      reply.code(500).send({ message: 'Internal Server Error' });
+    }
+  });  
   
 
 //   fastify.post('/', { preHandler: [fastify.authenticate, fastify.verifyAdmin] }, async (req: fastify.Request, reply: fastify.Reply) => {

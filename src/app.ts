@@ -219,7 +219,7 @@ app.get('/', async (req: fastify.Request, reply: fastify.Reply) => {
 });
 
 const port = 3002;
-const host = '10.0.95.9';
+const host = '10.0.10.196';
 
 app.listen(port, host, (err) => {
   if (err) throw err;
